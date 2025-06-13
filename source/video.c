@@ -8,7 +8,9 @@
 #include <sys/errno.h>
 #include <sys/unistd.h>
 #include <stdbool.h>
+
 #include "video.h"
+#include "save_file.h"
 
 static jmp_buf exitJmp;
 
@@ -54,6 +56,27 @@ void writePictureToFramebufferRGB565(void *fb, void *img, u16 x, u16 y, u16 widt
 			fb_8[v+2] = b;
 		}
 	}
+}
+
+u8 * takePictureFromFramebufferRGB565(void *fb, void *img, u16 x, u16 y, u16 width, u16 height) {
+	u8 *fb_8 = (u8*) fb;
+	u16 *img_16 = (u16*) img;
+	int i, j, draw_x, draw_y;
+	for(j = 0; j < height; j++) {
+		for(i = 0; i < width; i++) {
+			draw_y = y + height - j;
+			draw_x = x + i;
+			u32 v = (draw_y + draw_x * height) * 3;
+			u16 data = img_16[j * width + i];
+			uint8_t b = ((data >> 11) & 0x1F) << 3;
+			uint8_t g = ((data >> 5) & 0x3F) << 2;
+			uint8_t r = (data & 0x1F) << 3;
+			fb_8[v] = r;
+			fb_8[v+1] = g;
+			fb_8[v+2] = b;
+		}
+	}
+    return fb_8;
 }
 
 void changeCams(bool useInnerCam){
@@ -176,7 +199,7 @@ int videoLoop() {
 			hidScanInput();
 			kDown = hidKeysDown();
             kUp = hidKeysUp();
-
+            
 			// If START button is pressed, break loop and quit
 			if (kDown & KEY_START) {
 				break;
@@ -193,6 +216,13 @@ int videoLoop() {
 					changeCams(useInnerCam);
 				}
 			}
+
+            if(kDown & KEY_R){
+                printf("Taking photo...\n");
+                u8* picture=takePictureFromFramebufferRGB565(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), buf, 0, 0, WIDTH, HEIGHT);
+                saveRGBToPPM("output.ppm",picture, HEIGHT,WIDTH);
+                printf("Successfully took photo!\n");
+            }
 		}
 
 		// events 2 and 3 for capture

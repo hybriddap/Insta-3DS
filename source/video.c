@@ -11,6 +11,7 @@
 
 #include "video.h"
 #include "save_file.h"
+#include "http_requests.h"
 
 static jmp_buf exitJmp;
 
@@ -222,6 +223,7 @@ int videoLoop() {
                 u8* picture=takePictureFromFramebufferRGB565(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), buf, 0, 0, WIDTH, HEIGHT);
                 saveRGBToPPM("output.ppm",picture, HEIGHT,WIDTH);
                 printf("Successfully took photo!\n");
+				//Upload Logic
             }
 		}
 

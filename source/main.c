@@ -16,6 +16,7 @@ int main()
 	acInit();
 	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, NULL);
+	httpcInit(4 * 1024 * 1024); // Buffer size when POST/PUT.
 
 	// Enable double buffering to remove screen tearing
 	gfxSetDoubleBuffering(GFX_TOP, true);

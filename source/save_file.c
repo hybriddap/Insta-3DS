@@ -59,6 +59,7 @@ void rotate_ppm_left(const char* input, const char* output) {
 }
 
 void saveRGBToPPM(const char *filename, uint8_t *rgb, uint16_t width, uint16_t height) {
+    //Write first ppm file that will be rotated eventually
     FILE *f = fopen(filename, "wb");
     if (!f) { perror("fopen"); return; }
 
@@ -70,5 +71,8 @@ void saveRGBToPPM(const char *filename, uint8_t *rgb, uint16_t width, uint16_t h
 
     fflush(f);
     fclose(f);
-    rotate_ppm_left(filename,"output2.ppm");
+
+
+    //Need to rotate for some reason it saves rotated 90 degrees otherwise
+    rotate_ppm_left(filename,"output.ppm");
 }

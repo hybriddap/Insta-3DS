@@ -12,6 +12,7 @@
 #include "video.h"
 #include "save_file.h"
 #include "http_requests.h"
+#include <inttypes.h>
 
 static jmp_buf exitJmp;
 
@@ -221,9 +222,12 @@ int videoLoop() {
             if(kDown & KEY_R){
                 printf("Taking photo...\n");
                 u8* picture=takePictureFromFramebufferRGB565(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), buf, 0, 0, WIDTH, HEIGHT);
-                saveRGBToPPM("output.ppm",picture, HEIGHT,WIDTH);
+                saveRGBToPPM("outputtemp.ppm",picture, HEIGHT,WIDTH);
                 printf("Successfully took photo!\n");
+
 				//Upload Logic
+				upload_ppm_file("http://192.168.0.31:5001/test-c-upload","output.ppm");
+				upload_post_data("http://192.168.0.31:5001/upload-meta");
             }
 		}
 
@@ -294,6 +298,7 @@ int videoLoop() {
     CAMU_Activate(SELECT_NONE);
 	printf("Shutting off camera!\n");
 
+	httpcExit();
     // Exit
 	free(buf);
 	cleanup();

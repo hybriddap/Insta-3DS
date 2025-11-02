@@ -160,6 +160,7 @@ int videoLoop() {
 	char *responseBuf=NULL;
 
 	printf("Welcome to Insta-3DS!\n");
+	printf("Made by dap.\n");
 	printf("Initializing camera\n");
 	camInit();
 

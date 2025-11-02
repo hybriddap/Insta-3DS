@@ -83,7 +83,7 @@ void create_save_file()
 
     fptr = fopen("insta_3ds_data.txt", "w");
 
-    fprintf(fptr, "http://192.168.0.31:5001");
+    fprintf(fptr, "https://insta-3ds-server.onrender.com/");
     fprintf(fptr, "\nToken");
 
     // Close the file

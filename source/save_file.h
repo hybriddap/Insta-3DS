@@ -11,5 +11,6 @@
 //methods
 void saveRGBToPPM(const char *filename, uint8_t *rgb, uint16_t width, uint16_t height);
 void read_from_file(char* serverAddress, char* token);
+void update_file(char* serverAddress, char* token);
 
 #endif

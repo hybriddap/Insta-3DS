@@ -81,14 +81,29 @@ void create_save_file()
 {
     FILE *fptr;
 
-    // Open a file in append mode
     fptr = fopen("insta_3ds_data.txt", "w");
 
     fprintf(fptr, "http://192.168.0.31:5001");
-    fprintf(fptr, "\nDap");
+    fprintf(fptr, "\nToken");
 
     // Close the file
     fclose(fptr);
+}
+
+void update_file(char* serverAddress, char* token)
+{
+    FILE *fptr;
+    fptr = fopen("insta_3ds_data.txt", "w");
+    
+    fprintf(fptr, serverAddress);
+    fprintf(fptr, "\n");
+    fprintf(fptr, token);
+
+    // Close the file
+    fclose(fptr);
+
+    printf("\nUpdated Server Address: %s\n",serverAddress);
+	printf("Updated Token: %s\n\n",token);
 }
 
 void read_from_file(char* serverAddress, char* token)
@@ -96,7 +111,7 @@ void read_from_file(char* serverAddress, char* token)
     // read mode.
     FILE* file = fopen("insta_3ds_data.txt", "r");
     // Buffer to store each line of the file.
-    char line[256];
+    char line[512];
     int i=0;
 
     // Check if the file was opened successfully.
@@ -129,4 +144,6 @@ void read_from_file(char* serverAddress, char* token)
         printf("No save file found. Creating new save file.\n");
         create_save_file();
     }
+    printf("\nCurrent Server Address: %s\n",serverAddress);
+	printf("Current Token: %s\n\n",token);
 }

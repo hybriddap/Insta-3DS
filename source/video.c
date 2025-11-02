@@ -125,15 +125,22 @@ void takePicture3D(u8 *buf) {
 	printf("CAMU_Activate: 0x%08X\n", (unsigned int) CAMU_Activate(SELECT_NONE));
 }
 
-void getInput(char *mybuf, size_t bufSize, char *hint)
+void getInput(char *mybuf, size_t bufSize, char *hint, const char *initial)
 {
 	static SwkbdState swkbd;
 	swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 1, -1);
-	swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, SWKBD_FILTER_DIGITS | SWKBD_FILTER_AT | SWKBD_FILTER_PERCENT | SWKBD_FILTER_BACKSLASH | SWKBD_FILTER_PROFANITY, 2);
-	swkbdSetFeatures(&swkbd, SWKBD_MULTILINE);
+	swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK,0,0);
+	swkbdSetFeatures(&swkbd, SWKBD_MULTILINE | SWKBD_DARKEN_TOP_SCREEN);
 	swkbdSetHintText(&swkbd, hint);
+	if (initial) {
+        swkbdSetInitialText(&swkbd, initial);
+    } else {
+        swkbdSetInitialText(&swkbd, "");
+    }
 	swkbdInputText(&swkbd, mybuf, bufSize);	//save to button var for retrieving button clicked if u want
 	//printf("Input: %s\n", mybuf);
+	//null termination
+	mybuf[bufSize - 1] = '\0';
 }
 
 int videoLoop() {
@@ -149,19 +156,17 @@ int videoLoop() {
     bool useInnerCam = false;
     bool btnDebounce=false;
 
-	static char inputBuf[256];
+	static char inputBuf[512];
 	char *responseBuf=NULL;
 
+	printf("Welcome to Insta-3DS!\n");
 	printf("Initializing camera\n");
 	camInit();
 
 	//read save data
-	char serverAddress[256];
-	char token[256];
+	char serverAddress[512];
+	char token[512];
 	read_from_file(serverAddress,token);
-	printf("Current Server Address: %s\n",serverAddress);
-	printf("Current Token: %s\n",token);
-
 
     //Inner Setup
 	CAMU_SetSize(SELECT_IN1, SIZE_CTR_TOP_LCD, CONTEXT_A);
@@ -213,7 +218,7 @@ int videoLoop() {
 	gfxSwapBuffers();
 
 	//printf("\nUse slider to enable/disable 3D\n");
-	printf("Press 'Start' to exit to Homebrew Launcher\n");
+	printf("Press 'Start' to exit\n");
 	printf("Press 'X' to change save file settings\n");
 	printf("Press 'A' to flip camera\n");
 	printf("Press 'R' to take photo\n\n");
@@ -251,21 +256,36 @@ int videoLoop() {
                 printf("Successfully took photo!\n");
 
 				//Upload Logic
-				getInput(inputBuf,sizeof(inputBuf),"Type 'y' if you want to upload this.");
+				getInput(inputBuf,sizeof(inputBuf),"Type 'y' if you want to upload this.",NULL);
+				//Prep Vars
+				char serverAddress1[1024];
+				char serverAddress2[1024];
+				// Build full endpoint URLs safely
+				snprintf(serverAddress1, sizeof(serverAddress1), "%s/convert-upload-imgur", serverAddress);
+				snprintf(serverAddress2, sizeof(serverAddress2), "%s/upload-meta", serverAddress);
+
 				if (inputBuf[0]!='y') continue; //skip rest of logic
-				Result r = upload_ppm_file(strcat(serverAddress,"/convert-upload-imgur"),"output.ppm",&responseBuf);
+				Result r = upload_ppm_file(serverAddress1,"output.ppm",&responseBuf);
 				if (r == 0 && responseBuf) {
 					printf("Server: %s\n", responseBuf);
 					if(responseBuf[0]!='h') continue;	//lazy url sanity check
-					getInput(inputBuf,sizeof(inputBuf),"Enter caption...");
-					upload_post_data(strcat(serverAddress,"/upload-meta"),token,inputBuf,responseBuf);
+					getInput(inputBuf,sizeof(inputBuf),"Enter caption...",NULL);
+					upload_post_data(serverAddress2,token,inputBuf,responseBuf);
 					free(responseBuf);
+				}
+				else
+				{
+					printf("There was an error uploading and converting\n");
 				}
             }
 
 			if (kDown & KEY_X)
 			{
-				getInput(inputBuf,sizeof(inputBuf),"Enter access token..");
+				getInput(inputBuf,sizeof(inputBuf),"Enter server address..",serverAddress);
+				strcpy(serverAddress,inputBuf);
+				getInput(inputBuf,sizeof(inputBuf),"Enter access token..",token);
+				strcpy(token,inputBuf);
+				update_file(serverAddress,token);
 			}
 		}
 

@@ -5,7 +5,7 @@
 
 #include <3ds.h>
 
-Result upload_ppm_file(const char *url, const char *filename)
+Result upload_ppm_file(const char *url, const char *filename,char** responseBuf)
 {
     FILE *fp = fopen(filename, "rb");
     if (!fp) {
@@ -36,7 +36,7 @@ Result upload_ppm_file(const char *url, const char *filename)
 	u8 *response = NULL;
 	u32 readsize = 0, size = 0;
 
-    printf("Uploading %s (%ld bytes)\n", filename, filesize);
+    printf("Converting and uploading to imgur: %s (%ld bytes)\n", filename, filesize);
 
     ret = httpcOpenContext(&context, HTTPC_METHOD_POST, url, 0);
     if (ret) return ret;
@@ -82,22 +82,24 @@ Result upload_ppm_file(const char *url, const char *filename)
     } while (ret == HTTPC_RESULTCODE_DOWNLOADPENDING);
 
     response[size] = '\0'; // null terminate (safe if text)
-    printf("%s\n", response);
+
+    if (ret == 0) {
+        if (responseBuf) *responseBuf = (char*)response; // transfer ownership to caller
+    } else {
+        free(response);
+        if (responseBuf) *responseBuf = NULL;
+    }
 
     httpcCloseContext(&context);
     free(filedata);
     return ret;
 }
 
-Result upload_post_data(const char* url)
+Result upload_post_data(const char* url,const char* token, const char* caption, const char* image_url)
 {
     Result ret;
     httpcContext context;
     u32 statuscode;
-
-    const char* token = "DapsToken";
-    const char* caption = "Test from my #3ds";
-    const char* image_url = "url";
 
     char json_body[512];
     snprintf(json_body, sizeof(json_body),
@@ -144,7 +146,7 @@ Result upload_post_data(const char* url)
     } while (ret == HTTPC_RESULTCODE_DOWNLOADPENDING);
 
     response[size] = '\0';
-    printf("%s\n", response);
+    printf("Server: %s\n", response);
 
     free(response);
     httpcCloseContext(&context);

@@ -125,6 +125,17 @@ void takePicture3D(u8 *buf) {
 	printf("CAMU_Activate: 0x%08X\n", (unsigned int) CAMU_Activate(SELECT_NONE));
 }
 
+void getInput(char *mybuf, size_t bufSize, char *hint)
+{
+	static SwkbdState swkbd;
+	swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 1, -1);
+	swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, SWKBD_FILTER_DIGITS | SWKBD_FILTER_AT | SWKBD_FILTER_PERCENT | SWKBD_FILTER_BACKSLASH | SWKBD_FILTER_PROFANITY, 2);
+	swkbdSetFeatures(&swkbd, SWKBD_MULTILINE);
+	swkbdSetHintText(&swkbd, hint);
+	swkbdInputText(&swkbd, mybuf, bufSize);	//save to button var for retrieving button clicked if u want
+	printf("Input: %s\n", mybuf);
+}
+
 int videoLoop() {
 
 	// Save current stack frame for easy exit
@@ -137,6 +148,9 @@ int videoLoop() {
     u32 kUp;
     bool useInnerCam = false;
     bool btnDebounce=false;
+
+	static char inputBuf[256];
+	char *responseBuf=NULL;
 
 	printf("Initializing camera\n");
 	camInit();
@@ -226,9 +240,24 @@ int videoLoop() {
                 printf("Successfully took photo!\n");
 
 				//Upload Logic
-				upload_ppm_file("http://192.168.0.31:5001/test-c-upload","output.ppm");
-				upload_post_data("http://192.168.0.31:5001/upload-meta");
+				Result r = upload_ppm_file("http://192.168.0.31:5001/convert-upload-imgur","output.ppm",&responseBuf);
+				if (r == 0 && responseBuf) {
+					printf("Server: %s\n", responseBuf);
+
+					getInput(inputBuf,sizeof(inputBuf),"Are you sure you would like to upload this to Insta? Type 'y' if so.");
+					if (inputBuf[0]!='y') continue; //skip rest of logic
+					
+					getInput(inputBuf,sizeof(inputBuf),"Enter caption...");
+					if(responseBuf[0]=='h')	//lazy url sanity check
+						upload_post_data("http://192.168.0.31:5001/upload-meta","Dap",inputBuf,responseBuf);
+					free(responseBuf);
+				}
             }
+
+			if (kDown & KEY_X)
+			{
+				getInput(inputBuf,sizeof(inputBuf),"Enter access token..");
+			}
 		}
 
 		// events 2 and 3 for capture

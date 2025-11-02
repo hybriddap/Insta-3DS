@@ -83,7 +83,7 @@ void create_save_file()
 
     fptr = fopen("insta_3ds_data.txt", "w");
 
-    fprintf(fptr, "https://insta-3ds-server.onrender.com/");
+    fprintf(fptr, "***REMOVED***");
     fprintf(fptr, "\nToken");
 
     // Close the file

@@ -276,7 +276,7 @@ int videoLoop() {
 				}
 				else
 				{
-					printf("There was an error uploading and converting\n");
+					printf("There was an error uploading and converting. Check the address is correct.\n");
 				}
             }
 

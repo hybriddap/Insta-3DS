@@ -36,7 +36,8 @@ Result upload_ppm_file(const char *url, const char *filename,char** responseBuf)
 	u8 *response = NULL;
 	u32 readsize = 0, size = 0;
 
-    printf("Converting and uploading to imgur: %s (%ld bytes)\n", filename, filesize);
+    //printf("Converting and uploading to imgur: %s (%ld bytes)\n", filename, filesize);
+    printf("Converting and uploading to imgur...\n");
 
     ret = httpcOpenContext(&context, HTTPC_METHOD_POST, url, 0);
     if (ret) return ret;

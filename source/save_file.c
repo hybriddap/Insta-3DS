@@ -76,3 +76,57 @@ void saveRGBToPPM(const char *filename, uint8_t *rgb, uint16_t width, uint16_t h
     //Need to rotate for some reason it saves rotated 90 degrees otherwise
     rotate_ppm_left(filename,"output.ppm");
 }
+
+void create_save_file()
+{
+    FILE *fptr;
+
+    // Open a file in append mode
+    fptr = fopen("insta_3ds_data.txt", "w");
+
+    fprintf(fptr, "http://192.168.0.31:5001");
+    fprintf(fptr, "\nDap");
+
+    // Close the file
+    fclose(fptr);
+}
+
+void read_from_file(char* serverAddress, char* token)
+{
+    // read mode.
+    FILE* file = fopen("insta_3ds_data.txt", "r");
+    // Buffer to store each line of the file.
+    char line[256];
+    int i=0;
+
+    // Check if the file was opened successfully.
+    if (file != NULL) {
+        printf("Found save file.\n");
+        // Read each line from the file and store it in the
+        // 'line' buffer.
+        while (fgets(line, sizeof(line), file)) {
+            //Get rid of trailing \n
+            int len = strlen(line);
+            if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+
+            //Actual logic
+            if(i==0)
+                strcpy(serverAddress, line);
+            else if(i==1)
+                strcpy(token, line);
+            else
+                break;  //only 2 lines
+            i++;
+        }
+
+        // Close the file stream once all lines have been
+        // read.
+        fclose(file);
+    }
+    else {
+        // Print an error message to the standard error
+        // stream if the file cannot be opened.
+        printf("No save file found. Creating new save file.\n");
+        create_save_file();
+    }
+}

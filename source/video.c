@@ -133,7 +133,7 @@ void getInput(char *mybuf, size_t bufSize, char *hint)
 	swkbdSetFeatures(&swkbd, SWKBD_MULTILINE);
 	swkbdSetHintText(&swkbd, hint);
 	swkbdInputText(&swkbd, mybuf, bufSize);	//save to button var for retrieving button clicked if u want
-	printf("Input: %s\n", mybuf);
+	//printf("Input: %s\n", mybuf);
 }
 
 int videoLoop() {
@@ -154,6 +154,14 @@ int videoLoop() {
 
 	printf("Initializing camera\n");
 	camInit();
+
+	//read save data
+	char serverAddress[256];
+	char token[256];
+	read_from_file(serverAddress,token);
+	printf("Current Server Address: %s\n",serverAddress);
+	printf("Current Token: %s\n",token);
+
 
     //Inner Setup
 	CAMU_SetSize(SELECT_IN1, SIZE_CTR_TOP_LCD, CONTEXT_A);
@@ -204,8 +212,11 @@ int videoLoop() {
 	gspWaitForVBlank();
 	gfxSwapBuffers();
 
-	printf("\nUse slider to enable/disable 3D\n");
-	printf("Press Start to exit to Homebrew Launcher\n");
+	//printf("\nUse slider to enable/disable 3D\n");
+	printf("Press 'Start' to exit to Homebrew Launcher\n");
+	printf("Press 'X' to change save file settings\n");
+	printf("Press 'A' to flip camera\n");
+	printf("Press 'R' to take photo\n\n");
 
 	// Main loop
 	while (aptMainLoop()) {
@@ -240,16 +251,14 @@ int videoLoop() {
                 printf("Successfully took photo!\n");
 
 				//Upload Logic
-				Result r = upload_ppm_file("http://192.168.0.31:5001/convert-upload-imgur","output.ppm",&responseBuf);
+				getInput(inputBuf,sizeof(inputBuf),"Type 'y' if you want to upload this.");
+				if (inputBuf[0]!='y') continue; //skip rest of logic
+				Result r = upload_ppm_file(strcat(serverAddress,"/convert-upload-imgur"),"output.ppm",&responseBuf);
 				if (r == 0 && responseBuf) {
 					printf("Server: %s\n", responseBuf);
-
-					getInput(inputBuf,sizeof(inputBuf),"Are you sure you would like to upload this to Insta? Type 'y' if so.");
-					if (inputBuf[0]!='y') continue; //skip rest of logic
-					
+					if(responseBuf[0]!='h') continue;	//lazy url sanity check
 					getInput(inputBuf,sizeof(inputBuf),"Enter caption...");
-					if(responseBuf[0]=='h')	//lazy url sanity check
-						upload_post_data("http://192.168.0.31:5001/upload-meta","Dap",inputBuf,responseBuf);
+					upload_post_data(strcat(serverAddress,"/upload-meta"),token,inputBuf,responseBuf);
 					free(responseBuf);
 				}
             }

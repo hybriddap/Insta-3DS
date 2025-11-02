@@ -40,6 +40,8 @@ GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
+TITLE		:= Insta3DS
+DESC		:= Instagram posting on the 3ds.
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -149,6 +151,10 @@ ifeq ($(strip $(ICON)),)
 else
 	export APP_ICON := $(TOPDIR)/$(ICON)
 endif
+
+export APP_TITLE := $(TITLE)
+export APP_DESCRIPTION := $(DESC)
+export APP_AUTHOR := dap
 
 ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(OUTPUT).smdh

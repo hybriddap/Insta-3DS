@@ -143,6 +143,8 @@ void read_from_file(char* serverAddress, char* token)
         // stream if the file cannot be opened.
         printf("No save file found. Creating new save file.\n");
         create_save_file();
+        read_from_file(serverAddress,token); //read it again
+        return; //return this node
     }
     printf("\nCurrent Server Address: %s\n",serverAddress);
 	printf("Current Token: %s\n\n",token);

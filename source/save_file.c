@@ -83,7 +83,7 @@ void create_save_file()
 
     fptr = fopen("insta_3ds_data.txt", "w");
 
-    fprintf(fptr, "http://daptests.xyz/");
+    fprintf(fptr, "http://daptests.xyz:5001/");
     fprintf(fptr, "\nToken");
 
     // Close the file
